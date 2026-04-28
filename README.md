@@ -1,6 +1,6 @@
 # CRM Agentic Reasoning Engine
 
-**Multi-agent system that reasons across CRM data, product docs, and entity relationships with grounded answers and traceable evidence.**
+**Multi-agent system that reasons across CRM data, product docs, and a knowledge graph with grounded answers and traceable evidence.**
 
 [![Tests](https://img.shields.io/badge/tests-738_passing-brightgreen)](#quality)
 [![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](#quality)
