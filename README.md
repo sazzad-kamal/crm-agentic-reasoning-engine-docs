@@ -24,9 +24,9 @@
 
 ## The Problem
 
-An account manager prepping Acme's renewal asks: *"Is Acme actively using Act! Marketing Automation, and who on their buying committee is connected to our competitors?"*
+An account manager prepping Acme's renewal asks: *"Acme's renewal is at risk — which Act! Marketing Automation features are they under-using, what does the documentation recommend for those features, and who on their buying committee should I prioritize, excluding anyone connected to our competitors?"*
 
-This one question touches three sources — CRM data (AMA usage, renewal status), product docs (what Act! Marketing Automation covers), and entity relationships (buying committee, competitor connections). Naive approaches fall short — ungrounded LLMs fabricate, single-source RAG sees one facet, and SQL can't reason about documentation or relationships.
+This one question touches three sources — CRM data (feature usage, renewal status), product docs (recommendations for under-utilized features), and the knowledge graph (buying committee, competitor connections). Naive approaches fall short — ungrounded LLMs fabricate, single-source RAG sees one facet, and SQL can't reason about documentation or relationships.
 
 **This system is a multi-agent reasoning pipeline that orchestrates across heterogeneous sources.** A supervisor routes single-intent questions directly to the right data agent; a planner decomposes cross-source questions and fans out to SQL (DuckDB), RAG (LlamaIndex), and Graph (Neo4j) in parallel; the answer node weaves the evidence into one coherent response. Every claim cites its source with evidence tags (`[E#]` for SQL, `[D#]` for docs, `[G#]` for graph), and faithfulness is enforced via RAGAS SLOs in CI.
 
@@ -66,7 +66,7 @@ flowchart TB
 
 The pipeline is an **8-node LangGraph**: three reasoning agents (Supervisor, Planner, Answer — amber), three data tools (SQL, RAG, Graph — blue), and two response nodes (Action, Followup — green). The SQL tool internally dispatches on intent (`data_query`, `compare`, `trend`, `health`) to the right handler. Planner fan-out detail is in [§ Planner Cross-Source Fan-Out](#planner-cross-source-multi-agent-fan-out); Answer's source-targeted re-fetch is in [§ Re-Fetch Loop](#universal-re-fetch-loop). For additional topology and ASCII views, see [LangGraph Diagram](docs/LANGGRAPH_DIAGRAM.md).
 
-> For example: "Show Q1 deals" → SQL, "How do I import contacts?" → RAG, "Who on Acme's team is connected to our competitors?" → Graph, "Is Acme using Act! Marketing Automation, and is their buying committee connected to competitors?" → Planner. See [ARCHITECTURE.md § Supervisor Routing](./docs/ARCHITECTURE.md#supervisor-routing) for the complete intent-to-agent mapping.
+> For example: "Show Q1 deals" → SQL, "How do I import contacts?" → RAG, "Who on Acme's team is connected to our competitors?" → Graph, "Acme's at-risk renewal: which AMA features are under-used, what do docs recommend, and who on the committee should I prioritize avoiding competitor connections?" → Planner. See [ARCHITECTURE.md § Supervisor Routing](./docs/ARCHITECTURE.md#supervisor-routing) for the complete intent-to-agent mapping.
 
 ---
 
@@ -101,9 +101,9 @@ When the supervisor detects a question that spans multiple sources (SQL + docs, 
 
 ```mermaid
 flowchart LR
-    Q["Is Acme using Act! Marketing Automation,<br/>and is their buying committee<br/>connected to competitors?"] --> P[Planner]
-    P --> F[SQL fetch<br/>'Acme AMA usage']
-    P --> R[RAG<br/>'Act! Marketing Automation']
+    Q["Acme renewal at risk:<br/>under-used AMA features,<br/>doc recommendations,<br/>committee minus competitors?"] --> P[Planner]
+    P --> F[SQL fetch<br/>'Acme AMA feature usage']
+    P --> R[RAG<br/>'AMA feature recommendations']
     P --> G[Graph<br/>'committee ↔ competitors']
     F --> AG[Aggregate]
     R --> AG
