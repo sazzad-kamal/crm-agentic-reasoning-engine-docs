@@ -28,7 +28,7 @@ An account manager prepping Acme's renewal asks: *"Acme's renewal is at risk —
 
 This one question touches three sources — CRM data (feature usage, renewal status), product docs (recommendations for under-utilized features), and the knowledge graph (buying committee, competitor connections). Each baseline falls short for a different reason — pure LLMs hallucinate, LLM + RAG over a single corpus misses cross-cutting context, and direct SQL can't reason over docs or graph relationships.
 
-**This system is a multi-agent reasoning pipeline that orchestrates across heterogeneous sources.** A supervisor routes single-intent questions directly to the right data agent; a planner decomposes cross-source questions and fans out to SQL (DuckDB), RAG (LlamaIndex), and Graph (Neo4j) in parallel; the answer node weaves the evidence into one coherent response. Every claim cites its source with evidence tags (`[E#]` for SQL, `[D#]` for docs, `[G#]` for graph), and faithfulness is enforced via RAGAS SLOs in CI.
+**This system is an 8-node multi-agent reasoning pipeline that orchestrates across heterogeneous sources.** A supervisor routes single-intent questions directly to the right data tool; a planner decomposes cross-source questions and fans out to SQL (DuckDB), RAG (LlamaIndex), and Graph (Neo4j) in parallel; the answer node synthesizes the evidence into one coherent response. Every claim cites its source with evidence tags (`[E#]` for SQL, `[D#]` for docs, `[G#]` for graph), and faithfulness is enforced via RAGAS SLOs (≥ 0.85) in CI.
 
 ---
 
