@@ -2,7 +2,6 @@
 
 **Multi-agent system that reasons over CRM data with grounded, evidence-backed answers.**
 
-[![CI](https://github.com/sazzad-kamal/crm-agentic-reasoning-engine/actions/workflows/backend.yml/badge.svg)](https://github.com/sazzad-kamal/crm-agentic-reasoning-engine/actions/workflows/backend.yml)
 [![Tests](https://img.shields.io/badge/tests-738_passing-brightgreen)](#quality)
 [![Coverage](https://img.shields.io/badge/coverage-83%25-brightgreen)](#quality)
 [![Python](https://img.shields.io/badge/python-3.10+-blue)](https://www.python.org/)
