@@ -80,7 +80,7 @@ Three grounding sources in one system — each paired with the right retrieval m
 |---------------|--------|------------|
 | "What deals closed Q1?" | **CRM Data** | SQL → DuckDB |
 | "How do I import contacts?" | **Product Docs** | LlamaIndex → Vector Search |
-| "Who at at-risk companies has deals closing?" | **Knowledge Graph** | Cypher → Neo4j |
+| "Who on Acme's committee is connected to our competitors?" | **Knowledge Graph** | Cypher → Neo4j |
 
 ```mermaid
 flowchart LR
