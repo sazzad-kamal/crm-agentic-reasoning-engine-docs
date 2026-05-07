@@ -9,17 +9,6 @@
 [![LlamaIndex](https://img.shields.io/badge/RAG-LlamaIndex-orange)](https://www.llamaindex.ai/)
 [![Neo4j](https://img.shields.io/badge/GraphRAG-Neo4j-green)](https://neo4j.com/)
 
-<p align="center">
-  <a href="https://crm-reasoning-engine.up.railway.app/">
-    <img src="https://img.shields.io/badge/Try_Live_Demo-4F46E5?style=for-the-badge&logo=railway&logoColor=white" alt="Try Live Demo" />
-  </a>
-</p>
-
-<p align="center">
-  <img src="docs/demo-screenshot.png" alt="CRM Agentic Reasoning Engine Demo" width="800" />
-</p>
-<p align="center"><sub><em>Minimal React + SSE client for the demo UI.</em></sub></p>
-
 ---
 
 ## The Problem
