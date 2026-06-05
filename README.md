@@ -216,16 +216,16 @@ Eval is RAGAS + LLM-judges, SLO-gated in CI.
 
 Comprehensive unit + integration test suite at 83% coverage. Plus a curated grounded evaluation set — **manually authored, not synthetic** — covering all agent paths. Each question is paired with **expected source IDs** (gold labels) so retrieval scoring can be ground-truthed:
 
-| Agent Path | Questions | What's Tested |
-|------------|-----------|---------------|
-| SQL — fetch | 10 | Single-table lookups, filters, aggregations |
-| SQL — compare | 5 | A vs B comparisons across entities |
-| SQL — trend | 5 | Time-series, growth patterns |
-| SQL — health | 5 | Account health, renewal risk |
-| RAG — docs | 10 | Act! CRM documentation queries |
-| Graph | 10 | Entity relationships, multi-hop traversals |
-| Planner | 10 | Cross-source decomposition (SQL+RAG, SQL+Graph, all three) |
-| Clarify/Help | 5 | Vague, ambiguous, or meta queries |
+| Agent Path | What's Tested |
+|------------|---------------|
+| SQL — fetch | Single-table lookups, filters, aggregations |
+| SQL — compare | A vs B comparisons across entities |
+| SQL — trend | Time-series, growth patterns |
+| SQL — health | Account health, renewal risk |
+| RAG — docs | Act! CRM documentation queries |
+| Graph | Entity relationships, multi-hop traversals |
+| Planner | Cross-source decomposition (SQL+RAG, SQL+Graph, all three) |
+| Clarify/Help | Vague, ambiguous, or meta queries |
 
 ```mermaid
 flowchart LR
