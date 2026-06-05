@@ -51,7 +51,7 @@ flowchart TB
             DuckDB["DuckDB"]
             CSV["CSV Files"]
             Neo4j["Neo4j"]
-            VectorStore["LlamaIndex Vector Store"]
+            VectorStore["Qdrant<br/>(via LlamaIndex)"]
         end
     end
 

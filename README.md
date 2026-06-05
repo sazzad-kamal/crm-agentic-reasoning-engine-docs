@@ -39,7 +39,7 @@ flowchart TB
     ACT & FU --> END((END))
 
     SQL -.->|SQL| DB[(DuckDB)]
-    RAG -.->|vector| VS[(LlamaIndex)]
+    RAG -.->|vector| VS[(Qdrant)]
     GRAPH -.->|Cypher| N4[(Neo4j)]
 
     classDef agent fill:#fef3c7,stroke:#d97706,color:#78350f
@@ -78,7 +78,7 @@ flowchart LR
     S -->|How-To| RAG[RAG Agent]
     S -->|Relationships| GR[Graph Agent]
     SQL --> DB[(DuckDB)]
-    RAG --> VS[(Vector Store)]
+    RAG --> VS[(Qdrant)]
     GR --> N4[(Neo4j)]
 ```
 
@@ -184,6 +184,15 @@ flowchart LR
 - **SQL guard** (`sqlglot`): blocks INSERT/DELETE/DROP/UPDATE, auto-injects `LIMIT 1000`, rejects dangerous functions.
 - **Cypher guard** (read-only enforcement): blocks `CREATE`, `DELETE`, `DETACH`, `SET`, `REMOVE`, `MERGE`, `DROP`, `CALL`, `FOREACH`. Read-only traversals only, capped at 1000 results.
 
+### Prompt Injection Defenses
+
+Adversarial content in inputs can hijack model behavior. The engine defends against both flavors:
+
+- **Direct injection** (user input): the system prompt enforces evidence-only claims with citations; user input is treated as untrusted.
+- **Indirect injection** (retrieved documents): trust labels in ingestion metadata mark untrusted sources; the answer prompt frames retrieved content as evidence, not instruction; post-judge validation ensures citations stay within tenant scope.
+
+Multi-tenant deployments treat indirect injection as the higher-stakes case — one tenant's documents must not influence another tenant's output.
+
 ### Contract-Enforced Outputs
 
 Every LLM output passes through: **Validate → Repair → Fallback**
@@ -203,7 +212,9 @@ flowchart LR
 
 ## Evaluation
 
-738 tests (unit + integration), 83% coverage. Plus 60 grounded evaluation questions covering all agent paths:
+Eval spans two layers: this engine's production eval (RAGAS + LLM-judges, SLO-gated in CI) and a separate **RAG Evaluation Harness** research project that benchmarks naive vs hardened RAG pipelines across multiple corpus variants for systematic retrieval/chunking/reranking comparison.
+
+Comprehensive unit + integration test suite at 83% coverage. Plus a curated grounded evaluation set — **manually authored, not synthetic** — covering all agent paths. Each question is paired with **expected source IDs** (gold labels) so retrieval scoring can be ground-truthed:
 
 | Agent Path | Questions | What's Tested |
 |------------|-----------|---------------|
@@ -218,7 +229,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    Q[("60 Grounded<br/>Questions")] --> PIPE["Full Pipeline"]
+    Q[("Grounded<br/>Questions")] --> PIPE["Full Pipeline"]
     PIPE --> RAGAS["RAGAS<br/>faithfulness<br/>relevancy<br/>correctness"]
     PIPE --> AJ["Action Judge<br/>relevance<br/>actionability<br/>appropriateness"]
     PIPE --> FJ["Followup Judge<br/>relevance<br/>grounding<br/>diversity"]
@@ -242,9 +253,36 @@ flowchart LR
 | **Performance** | p50 Latency | ≤ 3s | Full pipeline |
 | | p95 Latency | ≤ 8s | Full pipeline |
 
+**Regression gate:** CI fails when RAGAS composite drops more than 0.05 absolute vs the baseline JSON.
+
+### Why LLM-as-Judge over hard rules
+
+Hard rules can't capture nuance — questions like "is this well-organized?" or "is the explanation clear?" don't reduce to keyword matches. Human review is ground truth but doesn't scale. Hybrid: LLM-as-judge runs on the full eval set; humans calibrate on a subset and spot-check judge drift.
+
+### Retrieval Diagnostic
+
+Recall@k / Precision@k / MRR run offline as a diagnostic lens — not part of the CI gate. When RAGAS regresses, these isolate the failure layer:
+
+- Retrieval stable + RAGAS down → synthesis problem (prompt / LLM)
+- Retrieval down + RAGAS down → retrieval problem (chunking, embeddings, reranker)
+
+RAGAS leads config selection; retrieval metrics diagnose.
+
+### Cost Considerations
+
+RAGAS uses LLM-as-judge internally, so eval cost per CI run is non-trivial. Mitigated by:
+
+- Full eval on PR
+- Smaller smoke set on push
+- Sampled scoring on production traffic (not every request)
+
+### Drift Detection & Production Monitoring
+
+Embedding-space drift detection compares target corpus to current corpus and flags when drift exceeds threshold. SLO burn-rate alerts fire when production latency, RAGAS faithfulness, or validate-repair fallback rate breach their baselines — catching regressions in production, not just at merge time.
+
 ### RAG Retrieval Strategy Comparison
 
-Automated pipeline comparing **6 retrieval configurations** across 20 grounded questions using RAGAS metrics:
+Automated pipeline comparing **6 retrieval configurations** across the grounded question set using RAGAS metrics:
 
 | Config | Retriever | Top-K | Reranker |
 |--------|-----------|-------|----------|
@@ -259,7 +297,7 @@ Winner selected by composite score: `0.4 * relevancy + 0.4 * faithfulness + 0.2 
 
 **Why these weights?** Relevancy and faithfulness are weighted equally at 0.4 each because they represent the two most critical qualities: the answer must address the question (relevancy) and must be grounded in retrieved context (faithfulness). Correctness is weighted lower at 0.2 because semantic similarity to a reference answer is sensitive to phrasing differences — a correct answer worded differently can score low on correctness but still be faithful and relevant.
 
-The comparison pipeline runs all 6 configs against the same 20 grounded questions (questions with known correct answers), computes RAGAS metrics for each, and ranks by composite score to select the best configuration for production use.
+The comparison pipeline runs all 6 configs against the same grounded question set, computes RAGAS metrics for each, and ranks by composite score to select the best configuration for production use.
 
 ---
 
@@ -289,7 +327,7 @@ Three model tiers: Claude for structured code generation, GPT-5.4 for complex re
 | Component | Technology | Why This Choice |
 |-------|------------|-----------------|
 | **Orchestration** | LangGraph | Stateful workflows, conditional edges, checkpointing |
-| **RAG Pipeline** | LlamaIndex | Hybrid vector + BM25 retrieval |
+| **RAG Pipeline** | LlamaIndex + Qdrant | Hybrid vector + BM25 retrieval, Qdrant-backed vector store |
 | **Graph DB** | Neo4j | Multi-hop entity traversal, Cypher queries |
 | **Analytics DB** | DuckDB | Columnar storage, fast aggregations, zero config |
 | **Evaluation** | RAGAS | Faithfulness, relevancy, correctness metrics |
