@@ -212,7 +212,7 @@ flowchart LR
 
 ## Evaluation
 
-Eval spans two layers: this engine's production eval (RAGAS + LLM-judges, SLO-gated in CI) and a separate **RAG Evaluation Harness** research project that benchmarks naive vs hardened RAG pipelines across multiple corpus variants for systematic retrieval/chunking/reranking comparison.
+Eval is RAGAS + LLM-judges, SLO-gated in CI.
 
 Comprehensive unit + integration test suite at 83% coverage. Plus a curated grounded evaluation set — **manually authored, not synthetic** — covering all agent paths. Each question is paired with **expected source IDs** (gold labels) so retrieval scoring can be ground-truthed:
 
